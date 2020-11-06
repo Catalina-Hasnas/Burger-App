@@ -93,13 +93,13 @@ class BurgerBuilder extends Component {
 
             .every(isZero)
         
-            console.log(this.state.purchasing)
+            // console.log(this.state.purchasing)
 
         return (
             <Aux>
                 <Modal 
                     show={this.state.purchasing}
-                    cancelPurchase={this.cancelPurchaseHandler}>
+                    clicked={this.cancelPurchaseHandler}>
                     <OrderSummary
                     ingredients={this.state.ingredients} 
                     price={this.state.totalPrice}
