@@ -6,17 +6,19 @@ import Backdrop from '../Backdrop/Backdrop'
 class Modal extends Component {
 
     shouldComponentUpdate(nextProps, nextState) {
-        return nextProps.show !== this.props.show;
+        return nextProps.show !== this.props.show || nextProps.children !== this.props.children;
     }
     
     // componentDidUpdate() {
-    //     console.log('updates2')
+    //     console.log(' modal updates2')
     // }
 
     render() {
         return(
             <Aux>
-                <Backdrop show={this.props.show} clicked={this.props.cancelPurchase} />
+                <Backdrop 
+                    show={this.props.show} 
+                    clicked={this.props.cancelPurchase} />
                 <div 
                 className={classes.Modal}
                 style={{
