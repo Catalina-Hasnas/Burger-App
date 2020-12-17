@@ -2,7 +2,9 @@ import React, { Component } from 'react';
 
 import Aux from '../../hoc/Auxiliary/Auxiliary';
 import axios from '../../axios-orders';
-import withErrorHandler from '../../hoc/withErrorHandler/withErrorHandler'
+import withErrorHandler from '../../hoc/withErrorHandler/withErrorHandler';
+import { connect } from 'react-redux';
+import * as actionTypes from '../../store/actions';
 
 import Burger from '../../components/Burger/Burger';
 import BuildControls from '../../components/Burger/BuildControls/BuildControls';
@@ -10,17 +12,8 @@ import Modal from '../../components/UI/Modal/Modal';
 import OrderSummary from '../../components/Burger/OrderSummary/OrderSummary';
 import Spinner from '../../components/UI/Spinner/Spinner';
 
-const INGREDIENT_PRICES = {
-    salad: 0.5,
-    bacon: 0.7,
-    cheese: 0.4,
-    meat: 1.3
-}
-
 class BurgerBuilder extends Component {
     state = {
-        ingredients: null,
-        totalPrice: 4,
         purchasing: false,
         loading: false,
         error: false
@@ -36,40 +29,6 @@ class BurgerBuilder extends Component {
             })
     }
 
-    addIngredientHandler = (type) => {
-        const oldCount = this.state.ingredients[type];
-        const updatedCount = oldCount + 1;
-        const updatedIngredients = { ...this.state.ingredients }
-        updatedIngredients[type] = updatedCount;
-        const priceAddition = INGREDIENT_PRICES[type];
-        const oldPrice = this.state.totalPrice;
-        const newPrice = oldPrice + priceAddition;
-
-        this.setState({
-            totalPrice: newPrice,
-            ingredients: updatedIngredients
-        })
-
-    }
-
-    removeIngredientHandler = (type) => {
-        const oldCount = this.state.ingredients[type];
-        if (oldCount <= 0) {
-            return;
-        }
-        const updatedCount = oldCount - 1;
-        const updatedIngredients = { ...this.state.ingredients }
-        updatedIngredients[type] = updatedCount;
-        const priceDeduction = INGREDIENT_PRICES[type];
-        const oldPrice = this.state.totalPrice;
-        const newPrice = oldPrice - priceDeduction;
-
-        this.setState({
-            totalPrice: newPrice,
-            ingredients: updatedIngredients
-        })
-    }
-
     purchaseHandler = () => {
         this.setState({ purchasing: true })
     }
@@ -79,56 +38,40 @@ class BurgerBuilder extends Component {
     }
 
     continuePurchaseHandler = () => {
-        const queryParams = [];
-        for (let i in this.state.ingredients) {
-            queryParams.push(encodeURIComponent(i) + '=' + encodeURIComponent(this.state.ingredients[i]))
-        }
-        queryParams.push('totalPrice=' + this.state.totalPrice)
-        const queryString = queryParams.join('&');
-            this.props.history.push({
-                pathname: '/checkout',
-                search: '?' + queryString
-            });
+        this.props.history.push('/checkout');
     }
 
     render() {
         const disabledInfo = {
-            ...this.state.ingredients
+            ...this.props.ingredients
         };
 
         for (let key in disabledInfo) {
             disabledInfo[key] = disabledInfo[key] <= 0
         }
 
-        const ingredients = {
-            ...this.state.ingredients
-        }
-
         const isZero = (currentValue) => currentValue === 0;
 
-        const purchasable = Object.keys(ingredients)
+        const purchasable = Object.keys(this.props.ingredients)
             .map(ingredientKey => {
-                return ingredients[ingredientKey]
+                return this.props.ingredients[ingredientKey]
             })
-
             .every(isZero)
-
-        // console.log(this.state.purchasing)
 
         let burger = this.state.error ? <p>Unfortunately, the burger can't be loaded at this time. Please try again later.</p> : <Spinner />
         let orderSummary = null;
 
-        if (this.state.ingredients) {
+        if (this.props.ingredients) {
             burger = (
                 <Aux>
                     <Burger
-                        ingredients={this.state.ingredients} />
+                        ingredients={this.props.ingredients} />
 
                     <BuildControls
-                        ingredientAdded={this.addIngredientHandler}
-                        ingredientDeleted={this.removeIngredientHandler}
+                        ingredientAdded={this.props.onIngredientAdded}
+                        ingredientDeleted={this.props.onIngredientRemoved}
                         disabled={disabledInfo}
-                        price={this.state.totalPrice}
+                        price={this.props.totalPrice}
                         purchasable={purchasable}
                         ordered={this.purchaseHandler} />
                 </Aux>
@@ -136,8 +79,8 @@ class BurgerBuilder extends Component {
 
             orderSummary = 
                 <OrderSummary
-                ingredients={this.state.ingredients}
-                price={this.state.totalPrice}
+                ingredients={this.props.ingredients}
+                price={this.props.totalPrice}
                 continuePurchase={this.continuePurchaseHandler}
                 cancelPurchase={this.cancelPurchaseHandler} />
         }
@@ -152,7 +95,6 @@ class BurgerBuilder extends Component {
                 <Modal
                     show={this.state.purchasing}
                     cancelPurchase={this.cancelPurchaseHandler}>
-
                     {orderSummary}
 
                 </Modal>
@@ -165,4 +107,18 @@ class BurgerBuilder extends Component {
     }
 }
 
-export default withErrorHandler(BurgerBuilder, axios);
+const mapStateToProps = state => {
+    return {
+        ingredients: state.ingredients,
+        totalPrice: state.totalPrice
+    }
+}
+
+const mapDispatchToProps = dispatch => {
+    return {
+        onIngredientAdded: (ingredientName) => dispatch({type: actionTypes.ADD_INGREDIENT, ingredientName: ingredientName}),
+        onIngredientRemoved: (ingredientName) => dispatch({type: actionTypes.REMOVE_INGREDIENT, ingredientName: ingredientName})
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(withErrorHandler(BurgerBuilder, axios));
