@@ -46,6 +46,12 @@ class Auth extends Component {
         isSignup: true
     }
 
+    componentDidMount() {
+        if (!this.props.building && this.props.authRedirectPath !== '/') {
+            this.props.onSetAuthRedirectPath();
+        }
+    }
+
     checkValidity = (value, rules) => {
         let isValid = true;
         
@@ -90,7 +96,6 @@ class Auth extends Component {
     submitHandler = (event) => {
         event.preventDefault();
         this.props.onAuth(this.state.controls.email.value, this.state.controls.password.value, this.state.isSignup);
-        // this.setState({isSignup: true})
     }
 
     switchAuthModeHandler = () => {
@@ -110,30 +115,19 @@ class Auth extends Component {
             });
         }
 
-        let authRedirect = null;
-
-        if (this.props.isAuth) {
-            authRedirect = <Redirect to="/" />
-        }
-
-        let form = (
-            <form onSubmit={this.submitHandler}>
-                {authRedirect}
-                {formElementsArray.map(formElement => ( 
-                    <Input 
-                        key={formElement.id}
-                        elementType={formElement.config.elementType}
-                        elementConfig={formElement.config.elementConfig}
-                        value={formElement.config.value}
-                        label={formElement.id}
-                        invalid={!formElement.config.valid}
-                        shouldValidate={formElement.config.validation}
-                        touched={formElement.config.touched}
-                        changed={(event) => this.inputChangedHandler(event, formElement.id)} />
-                ))}
-                <Button buttonType="Success">SUBMIT</Button>
-                
-            </form>
+        let form = formElementsArray.map(formElement => ( 
+                <Input 
+                    key={formElement.id}
+                    elementType={formElement.config.elementType}
+                    elementConfig={formElement.config.elementConfig}
+                    value={formElement.config.value}
+                    label={formElement.id}
+                    invalid={!formElement.config.valid}
+                    shouldValidate={formElement.config.validation}
+                    touched={formElement.config.touched}
+                    changed={(event) => this.inputChangedHandler(event, formElement.id)} />
+            )
+            // <Button buttonType="Success">SUBMIT</Button>
         );
 
         if (this.props.loading) {
@@ -148,12 +142,23 @@ class Auth extends Component {
             )
         }
 
+        let authRedirect = null;
+        if (this.props.isAuth) {
+            authRedirect = <Redirect to={this.props.authRedirectPath} />
+        }
+
         return ( 
         <div className={classes.Auth}> 
-            {form}
+            {authRedirect}
             {errorMessage}
-            <br/>
-            <Button buttonType="Danger" clicked={this.switchAuthModeHandler}> {this.state.isSignup ? 'SIGN IN' : 'SIGN UP' } </Button>
+            <form onSubmit={this.submitHandler}>
+                {form}
+                <Button buttonType="Success">SUBMIT</Button>
+            </form>
+                <Button 
+                    clicked={this.switchAuthModeHandler}
+                    buttonType="Danger">SWITCH TO {this.state.isSignup ? 'SIGN IN' : 'SIGN UP'}
+                </Button>
         </div> 
         );
     }
@@ -163,13 +168,16 @@ const mapStateToProps = state => {
     return {
         loading: state.auth.loading,
         error: state.auth.error,
-        isAuth: state.auth.token !== null
+        isAuth: state.auth.token !== null,
+        building: state.burgerBuilder.building,
+        authRedirectPath: state.auth.authRedirectPath,
     }
 }
 
 const mapDispatchToProps = dispatch => {
     return {
-        onAuth: (email, password, isSignup) => dispatch(actions.auth(email, password, isSignup))
+        onAuth: (email, password, isSignup) => dispatch(actions.auth(email, password, isSignup)),
+        onSetAuthRedirectPath: () => dispatch(actions.setAuthRedirectPath('/'))
     };
 };
 
