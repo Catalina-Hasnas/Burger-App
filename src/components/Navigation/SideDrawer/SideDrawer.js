@@ -20,7 +20,7 @@ const sideDrawer = (props) => {
             show={props.open}
             clicked={props.closed}/>
 
-            <div className={sideDrawerVisiblity.join(' ')}>
+            <div className={sideDrawerVisiblity.join(' ')} onClick={props.closed}>
                 <Logo height="11%" marginBottom="32px" />
                 <nav>
                     <NavigationItems isAuth={props.isAuth} />
