@@ -9,7 +9,6 @@
     display: block;
     margin-bottom: 8px;
     text-transform: capitalize;
-    text-align: left;
 }
 
 .InputElement {
@@ -30,5 +29,6 @@
 
 .Invalid {
     border: 1px solid red;
-    background-color: salmon;
+    background-color: #FDA49A;
 }
+

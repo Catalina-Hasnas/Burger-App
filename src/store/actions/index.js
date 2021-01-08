@@ -12,5 +12,9 @@ export {
     auth,
     logout,
     setAuthRedirectPath,
-    authCheckState
+    authCheckState,
 } from './auth';
+export {
+    saveUserInfo,
+    getUserInfo
+} from './user';

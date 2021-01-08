@@ -15,7 +15,8 @@ const Input = (props) => {
         case ('input'): 
             inputElement = <input
                                 className={inputClasses.join(" ")}
-                                value={props.value}  
+                                value={props.value} 
+                                id={props.id} 
                                 onChange={props.changed}
                                 {...props.elementConfig} />;
         break;
@@ -33,13 +34,17 @@ const Input = (props) => {
                 </select> 
             );
         break;
+
         default: 
             inputElement = <input 
                                 className={inputClasses.join(" ")}
                                 value={props.value} 
+                                id={props.id} 
                                 onChange={props.changed} 
                                 {...props.elementConfig} />;
     }
+
+    
 
     return (
         <div className={classes.Input}>

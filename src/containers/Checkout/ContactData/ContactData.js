@@ -9,7 +9,7 @@ import Spinner from '../../../components/UI/Spinner/Spinner';
 import Input from '../../../components/UI/Input/Input';
 import classes from './ContactData.module.css';
 
-import * as orderActions from '../../../store/actions/index';
+import * as actions from '../../../store/actions/index';
 
 class ContactData extends Component {
     state = {
@@ -40,7 +40,7 @@ class ContactData extends Component {
                 valid: false,
                 touched: false
             },
-            zipCode: {
+            "zip code": {
                 elementType: 'input',
                 elementConfig: {
                     type: 'text',
@@ -83,7 +83,7 @@ class ContactData extends Component {
                 valid: false,
                 touched: false
             },
-            "delivery Method": {
+            "delivery method": {
                 elementType: 'select',
                 elementConfig: {
                     options: [
@@ -95,11 +95,24 @@ class ContactData extends Component {
                 value: 'cheapest',
                 validation: {},
                 valid: true
-            }
+            },
         },
         formIsValid: false,
-        loading: false
+        loading: false,
+        checked: localStorage.getItem('saveUserInfo') === 'true'
     }
+
+    componentDidMount() {
+        const saveUserInfo = localStorage.getItem('saveUserInfo');
+
+        if (saveUserInfo === 'true') {
+            this.props.onGetUserInfo(this.props.token, this.props.userId, this.props.userInfoId);
+        }
+
+        console.log(this.props.userInfo);
+        console.log(this.state.checked);
+        console.log(localStorage);
+    };
 
     orderHandler = (event) => {
         event.preventDefault();
@@ -111,9 +124,17 @@ class ContactData extends Component {
             ingredients: this.props.ingredients,
             price: Number.parseFloat(this.props.totalPrice).toFixed(2),
             orderData: formData,
-            userId: this.props.userId
+            userId: this.props.userId,
         }
         this.props.onOrderBurger(order, this.props.token);
+
+        localStorage.setItem('saveUserInfo', this.state.checked);
+        console.log(localStorage);
+        const saveUserInfo = localStorage.getItem('saveUserInfo');
+
+        if (saveUserInfo === 'true') {
+            this.props.onSaveUserInfo(formData, this.props.token, this.props.userId);
+        }
     }
 
     inputChangedHandler = (event, inputIdentifier) => {
@@ -134,6 +155,18 @@ class ContactData extends Component {
         this.setState({orderForm: updatedOrderForm, formIsValid: formIsValid});
     }
 
+    saveUserInfo = (event) => {
+        let saveUserInfo = this.state.checked;
+        if (event.target.checked) {
+            saveUserInfo = true;
+        } else {
+            saveUserInfo = false;
+        }
+        this.setState({checked: saveUserInfo})
+      }
+
+    
+
     render () {
 
         const formElementsArray = [];
@@ -144,20 +177,38 @@ class ContactData extends Component {
             });
         }
 
+        const saveUserInfo = localStorage.getItem('saveUserInfo');
+
+        let checked = false;
+
+        if (saveUserInfo === 'true') {
+            checked = true;
+        }
+
+        let checkBox = (
+            <div>
+                <label for="saveInfo">Save info to account</label> 
+                <input type="checkbox" value="saveInfo" id="saveInfo" defaultChecked={checked} onClick={this.saveUserInfo}></input>
+            </div>
+        ) 
+
+        
         let form = (
-            <form onSubmit={this.orderHandler}>
+            <form autoComplete="on" onSubmit={this.orderHandler}>
                 {formElementsArray.map(formElement => ( 
                     <Input 
                         key={formElement.id}
                         elementType={formElement.config.elementType}
                         elementConfig={formElement.config.elementConfig}
+                        id={formElement.config.id}
                         value={formElement.config.value}
                         label={formElement.id}
                         invalid={!formElement.config.valid}
                         shouldValidate={formElement.config.validation}
                         touched={formElement.config.touched}
-                        changed={(event) => this.inputChangedHandler(event, formElement.id)} />
+                        changed={(event) => this.inputChangedHandler(event, formElement.id)}/>
                 ))}
+                {checkBox}
                 <Button buttonType="Success" disabled={!this.state.formIsValid}>ORDER</Button>
             </form>
         );
@@ -179,13 +230,17 @@ const mapStateToProps = state => {
         totalPrice: state.burgerBuilder.totalPrice,
         loading: state.order.loading,
         token: state.auth.token,
-        userId: state.auth.userId
+        userId: state.auth.userId,
+        userInfoId: state.user.userInfoId,
+        userInfo: state.user.userInfo
     }
 }
 
 const mapDispatchToProps = dispatch => {
     return {
-        onOrderBurger: (orderData, token) => dispatch(orderActions.purchaseBurger(orderData, token))
+        onGetUserInfo: (token, userId, userInfoId) => dispatch(actions.getUserInfo(token, userId, userInfoId)),
+        onSaveUserInfo: (formData, token, userId) => dispatch(actions.saveUserInfo(formData, token, userId)),  
+        onOrderBurger: (orderData, token) => dispatch(actions.purchaseBurger(orderData, token)),
     }
 }
 
