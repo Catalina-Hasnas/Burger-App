@@ -14,7 +14,3 @@ export {
     setAuthRedirectPath,
     authCheckState,
 } from './auth';
-export {
-    saveUserInfo,
-    getUserInfo
-} from './user';

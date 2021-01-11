@@ -20,7 +20,7 @@ class ContactData extends Component {
                     type: 'text',
                     placeholder: 'John Smith'
                 },
-                value: '',
+                defaultValue: '',
                 validation: {
                     required: true
                 },
@@ -33,7 +33,8 @@ class ContactData extends Component {
                     type: 'text',
                     placeholder: 'Roses str.'
                 },
-                value: '',
+                
+                defaultValue: '',
                 validation: {
                     required: true
                 },
@@ -46,7 +47,8 @@ class ContactData extends Component {
                     type: 'text',
                     placeholder: '15112'
                 },
-                value: '',
+                
+                defaultValue: '',
                 validation: {
                     required: true,
                     minLength: 5,
@@ -62,7 +64,8 @@ class ContactData extends Component {
                     type: 'text',
                     placeholder: 'Germany'
                 },
-                value: '',
+                
+                defaultValue: '',
                 validation: {
                     required: true,
                 },
@@ -75,7 +78,8 @@ class ContactData extends Component {
                     type: 'email',
                     placeholder: 'name@email.com'
                 },
-                value: '',
+                
+                defaultValue: '',
                 validation: {
                     required: true,
                     isEmail: true
@@ -92,7 +96,8 @@ class ContactData extends Component {
                         
                     ]
                 },
-                value: 'cheapest',
+                
+                defaultValue: 'cheapest',
                 validation: {},
                 valid: true
             },
@@ -104,21 +109,19 @@ class ContactData extends Component {
 
     componentDidMount() {
         const saveUserInfo = localStorage.getItem('saveUserInfo');
+        const userInfo = localStorage.getItem('userInfo');
+        const objectUserInfo = JSON.parse(userInfo);
 
-        if (saveUserInfo === 'true') {
-            this.props.onGetUserInfo(this.props.token, this.props.userId, this.props.userInfoId);
+        if (saveUserInfo === 'true' && userInfo ) {
+            this.setState ({orderForm: objectUserInfo, formIsValid: true})
         }
-
-        console.log(this.props.userInfo);
-        console.log(this.state.checked);
-        console.log(localStorage);
     };
 
     orderHandler = (event) => {
         event.preventDefault();
         const formData = {};
         for (let formElementIdentifier in this.state.orderForm) {
-            formData[formElementIdentifier] = this.state.orderForm[formElementIdentifier].value;
+            formData[formElementIdentifier] = this.state.orderForm[formElementIdentifier].defaultValue;
         }
         const order = {
             ingredients: this.props.ingredients,
@@ -129,21 +132,17 @@ class ContactData extends Component {
         this.props.onOrderBurger(order, this.props.token);
 
         localStorage.setItem('saveUserInfo', this.state.checked);
-        console.log(localStorage);
-        const saveUserInfo = localStorage.getItem('saveUserInfo');
-
-        if (saveUserInfo === 'true') {
-            this.props.onSaveUserInfo(formData, this.props.token, this.props.userId);
-        }
+        localStorage.setItem('userInfo', JSON.stringify(this.state.orderForm));
     }
 
     inputChangedHandler = (event, inputIdentifier) => {
-        
-        const updatedFormElement = updateObject(this.state.orderForm[inputIdentifier], {
-            value: event.target.value,
+
+        let updatedFormElement = updateObject(this.state.orderForm[inputIdentifier], {
+            defaultValue: event.target.value,
             valid: checkValidity(event.target.value, this.state.orderForm[inputIdentifier].validation),
             touched: true
         });
+
         const updatedOrderForm = updateObject(this.state.orderForm, {
             [inputIdentifier]: updatedFormElement
         });
@@ -163,11 +162,13 @@ class ContactData extends Component {
             saveUserInfo = false;
         }
         this.setState({checked: saveUserInfo})
-      }
+    }
 
     
-
     render () {
+        console.log(this.state.orderForm)
+
+        const saveUserInfo = localStorage.getItem('saveUserInfo');
 
         const formElementsArray = [];
         for (let key in this.state.orderForm) {
@@ -177,10 +178,8 @@ class ContactData extends Component {
             });
         }
 
-        const saveUserInfo = localStorage.getItem('saveUserInfo');
 
         let checked = false;
-
         if (saveUserInfo === 'true') {
             checked = true;
         }
@@ -191,17 +190,16 @@ class ContactData extends Component {
                 <input type="checkbox" value="saveInfo" id="saveInfo" defaultChecked={checked} onClick={this.saveUserInfo}></input>
             </div>
         ) 
-
         
         let form = (
-            <form autoComplete="on" onSubmit={this.orderHandler}>
+            <form onSubmit={this.orderHandler}>
                 {formElementsArray.map(formElement => ( 
                     <Input 
                         key={formElement.id}
                         elementType={formElement.config.elementType}
                         elementConfig={formElement.config.elementConfig}
                         id={formElement.config.id}
-                        value={formElement.config.value}
+                        defaultValue={formElement.config.defaultValue}
                         label={formElement.id}
                         invalid={!formElement.config.valid}
                         shouldValidate={formElement.config.validation}
@@ -212,9 +210,12 @@ class ContactData extends Component {
                 <Button buttonType="Success" disabled={!this.state.formIsValid}>ORDER</Button>
             </form>
         );
+
         if ( this.props.loading ) {
             form = <Spinner />;
-        }
+        } 
+
+
         return (
             <div className={classes.ContactData}>
                 <h4>Enter your Contact Data</h4>
@@ -231,15 +232,11 @@ const mapStateToProps = state => {
         loading: state.order.loading,
         token: state.auth.token,
         userId: state.auth.userId,
-        userInfoId: state.user.userInfoId,
-        userInfo: state.user.userInfo
     }
 }
 
 const mapDispatchToProps = dispatch => {
-    return {
-        onGetUserInfo: (token, userId, userInfoId) => dispatch(actions.getUserInfo(token, userId, userInfoId)),
-        onSaveUserInfo: (formData, token, userId) => dispatch(actions.saveUserInfo(formData, token, userId)),  
+    return { 
         onOrderBurger: (orderData, token) => dispatch(actions.purchaseBurger(orderData, token)),
     }
 }

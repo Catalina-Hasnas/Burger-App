@@ -15,7 +15,7 @@ const Input = (props) => {
         case ('input'): 
             inputElement = <input
                                 className={inputClasses.join(" ")}
-                                value={props.value} 
+                                defaultValue={props.defaultValue} 
                                 id={props.id} 
                                 onChange={props.changed}
                                 {...props.elementConfig} />;
@@ -38,7 +38,7 @@ const Input = (props) => {
         default: 
             inputElement = <input 
                                 className={inputClasses.join(" ")}
-                                value={props.value} 
+                                defaultValue={props.defaultValue} 
                                 id={props.id} 
                                 onChange={props.changed} 
                                 {...props.elementConfig} />;
