@@ -10,7 +10,7 @@
 .Ingredients {
     text-transform: capitalize;
     display: inline-block;
-    margin: 0 8px;
+    margin: 8px;
     border: 1px solid #ccc;
     padding: 5px;
 }

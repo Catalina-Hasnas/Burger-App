@@ -123,16 +123,19 @@ class ContactData extends Component {
         for (let formElementIdentifier in this.state.orderForm) {
             formData[formElementIdentifier] = this.state.orderForm[formElementIdentifier].defaultValue;
         }
+
         const order = {
             ingredients: this.props.ingredients,
             price: Number.parseFloat(this.props.totalPrice).toFixed(2),
             orderData: formData,
             userId: this.props.userId,
+
         }
         this.props.onOrderBurger(order, this.props.token);
 
         localStorage.setItem('saveUserInfo', this.state.checked);
         localStorage.setItem('userInfo', JSON.stringify(this.state.orderForm));
+        this.props.history.push('/orders');
     }
 
     inputChangedHandler = (event, inputIdentifier) => {
@@ -166,8 +169,6 @@ class ContactData extends Component {
 
     
     render () {
-        console.log(this.state.orderForm)
-
         const saveUserInfo = localStorage.getItem('saveUserInfo');
 
         const formElementsArray = [];
